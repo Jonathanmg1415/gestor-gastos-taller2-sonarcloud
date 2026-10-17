@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -91,7 +92,9 @@ public class RastreadorGastosTest {
 
   @Test
   void when_argumento_nulo_then_nada_sucede() {
-    rastreadorGastos.agregarGasto(null);
+    assertDoesNotThrow(() -> rastreadorGastos.agregarGasto(null));
+
+    verify(repo, times(1)).agregar(null);
   }
 
   @Test
