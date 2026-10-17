@@ -11,6 +11,12 @@ import java.util.Objects;
 
 public class ServicioReporte {
 
+    private static final BigDecimal FACTOR_DEDUCIBLE = new BigDecimal("0.5");
+    private static final BigDecimal FACTOR_RECARGO_ENTRETENIMIENTO = new BigDecimal("1.2");
+    private static final BigDecimal FACTOR_TRANSPORTE = new BigDecimal("0.8");
+    private static final BigDecimal LIMITE_ENTRETENIMIENTO = new BigDecimal("100000");
+    private static final BigDecimal LIMITE_TRANSPORTE = new BigDecimal("50000");
+
     private final RepositorioGastos repositorioGastos;
 
     public ServicioReporte(RepositorioGastos repositorioGastos) {
@@ -42,28 +48,30 @@ public class ServicioReporte {
     // Total del mes ajustado: salud y educación cuentan al 50 %, entretenimiento mayor a 100.000
     // tiene recargo del 20 % y transporte mayor a 50.000 cuenta al 80 %.
     public BigDecimal calcularTotalAjustadoDelMes(int anio, int mes) {
-        BigDecimal total = BigDecimal.ZERO;
-        List<Gasto> gastos = repositorioGastos.listarTodos();
-        if (gastos != null) {
-            for (Gasto gasto : gastos) {
-                if (gasto.getFecha().getYear() == anio && gasto.getFecha().getMonthValue() == mes) {
-                    if (gasto.getCategoria() == Categoria.SALUD || gasto.getCategoria() == Categoria.EDUCACION) {
-                        total = total.add(gasto.getMonto().multiply(new BigDecimal("0.5")));
-                    } else if (gasto.getCategoria() == Categoria.ENTRETENIMIENTO) {
-                        if (gasto.getMonto().compareTo(new BigDecimal("100000")) > 0) {
-                            total = total.add(gasto.getMonto().multiply(new BigDecimal("1.2")));
-                        } else {
-                            total = total.add(gasto.getMonto());
-                        }
-                    } else if (gasto.getCategoria() == Categoria.TRANSPORTE
-                            && gasto.getMonto().compareTo(new BigDecimal("50000")) > 0) {
-                        total = total.add(gasto.getMonto().multiply(new BigDecimal("0.8")));
-                    } else {
-                        total = total.add(gasto.getMonto());
-                    }
-                }
-            }
+        return repositorioGastos.listarTodos().stream()
+                .filter(gasto -> esDelMes(gasto, anio, mes))
+                .map(ServicioReporte::montoAjustado)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private static boolean esDelMes(Gasto gasto, int anio, int mes) {
+        return gasto.getFecha().getYear() == anio && gasto.getFecha().getMonthValue() == mes;
+    }
+
+    private static BigDecimal montoAjustado(Gasto gasto) {
+        BigDecimal monto = gasto.getMonto();
+        return switch (gasto.getCategoria()) {
+            case SALUD, EDUCACION -> monto.multiply(FACTOR_DEDUCIBLE);
+            case ENTRETENIMIENTO -> ajustarSiSupera(monto, LIMITE_ENTRETENIMIENTO, FACTOR_RECARGO_ENTRETENIMIENTO);
+            case TRANSPORTE -> ajustarSiSupera(monto, LIMITE_TRANSPORTE, FACTOR_TRANSPORTE);
+            default -> monto;
+        };
+    }
+
+    private static BigDecimal ajustarSiSupera(BigDecimal monto, BigDecimal limite, BigDecimal factor) {
+        if (monto.compareTo(limite) <= 0) {
+            return monto;
         }
-        return total;
+        return monto.multiply(factor);
     }
 }
