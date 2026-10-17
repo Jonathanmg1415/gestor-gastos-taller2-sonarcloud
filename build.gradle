@@ -2,6 +2,8 @@ plugins {
     id 'java'
     id 'application'
     id 'me.champeau.jmh' version '0.7.3'
+    id 'jacoco'
+    id 'org.sonarqube' version '7.3.1.8318'
 }
 
 group = 'com.practica'
@@ -34,6 +36,30 @@ dependencies {
 
 test {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport
+}
+
+jacoco {
+    // 0.8.14 es la primera versión con soporte oficial de Java 25
+    toolVersion = '0.8.14'
+}
+
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'Jonathanmg1415_gestor-gastos-taller2-sonarcloud'
+        property 'sonar.organization', 'jonathanmg1415'
+        property 'sonar.host.url', 'https://sonarcloud.io'
+        // La UI Swing y Main no tienen pruebas unitarias: se excluyen solo de la cobertura
+        property 'sonar.coverage.exclusions', '**/ui/**,**/Main.java'
+    }
 }
 
 jmh {
