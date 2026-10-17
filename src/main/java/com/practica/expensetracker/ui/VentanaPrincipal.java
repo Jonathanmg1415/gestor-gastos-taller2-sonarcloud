@@ -23,16 +23,19 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
 
 public class VentanaPrincipal extends JFrame {
+
+    private static final ZoneId ZONA_HORARIA = ZoneId.of("America/Bogota");
 
     private final RastreadorGastos rastreador;
     private final ServicioReporte servicioReporte;
 
     private final JTextField campoMonto = new JTextField(8);
     private final JComboBox<Categoria> comboCategoria = new JComboBox<>(Categoria.values());
-    private final JTextField campoFecha = new JTextField(LocalDate.now().toString(), 10);
+    private final JTextField campoFecha = new JTextField(LocalDate.now(ZONA_HORARIA).toString(), 10);
     private final JTextField campoDescripcion = new JTextField(15);
 
     private final DefaultTableModel modeloTabla = new DefaultTableModel(
@@ -176,7 +179,7 @@ public class VentanaPrincipal extends JFrame {
 
     private void limpiarFormulario() {
         campoMonto.setText("");
-        campoFecha.setText(LocalDate.now().toString());
+        campoFecha.setText(LocalDate.now(ZONA_HORARIA).toString());
         campoDescripcion.setText("");
     }
 

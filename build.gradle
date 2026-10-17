@@ -56,6 +56,8 @@ sonar {
     properties {
         property 'sonar.projectKey', 'Jonathanmg1415_gestor-gastos-taller2-sonarcloud'
         property 'sonar.organization', 'jonathanmg1415'
+        // Sin esto, Sonar toma rootProject.name ('gestor-gastos-java-pruebas', heredado del repo del equipo)
+        property 'sonar.projectName', 'gestor-gastos-taller2-sonarcloud'
         property 'sonar.host.url', 'https://sonarcloud.io'
         // La UI Swing y Main no tienen pruebas unitarias: se excluyen solo de la cobertura
         property 'sonar.coverage.exclusions', '**/ui/**,**/Main.java'
